@@ -133,3 +133,6 @@ dist
 
 /tools/Generator.js
 tsconfig.json
+package.json
+package-lock.json
+.editorconfig
