@@ -81,6 +81,14 @@ export default class FortranTranslator {
                     end if
                 end do
                 `;
+            case '*':
+                return `
+                do while (.not. cursor > len(input))
+                    if (.not. (${condition})) then
+                        exit
+                    end if
+                end do
+                `;
             default:
                 return `
                 if (.not. (${condition})) then

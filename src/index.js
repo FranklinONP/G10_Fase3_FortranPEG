@@ -94,28 +94,45 @@ editor.onDidChangeModelContent(() => {
 });
 
 let downloadHappening = false;
-const button = document.getElementById('BotonDescarga');
+const button = document.getElementById('botonDescargar');
+
 button.addEventListener('click', () => {
+    // Prevenir múltiples descargas simultáneas
     if (downloadHappening) return;
+
     if (!cst) {
         alert('Escribe una gramatica valida');
         return;
     }
+
+    downloadHappening = true; // Bloquear descargas adicionales mientras ocurre una
+
     let url;
     generateParser(cst)
         .then((fileContents) => {
             const blob = new Blob([fileContents], { type: 'text/plain' });
             url = URL.createObjectURL(blob);
-            button.href = url;
-            downloadHappening = true;
-            button.click();
+
+            // Crear un enlace temporal para descargar el archivo
+            const tempLink = document.createElement('a');
+            tempLink.href = url;
+            tempLink.download = 'parser.f90'; // Nombre del archivo
+            document.body.appendChild(tempLink); // Añadir el enlace al DOM
+            tempLink.click(); // Disparar el clic en el enlace
+            document.body.removeChild(tempLink); // Eliminar el enlace del DOM
+        })
+        .catch((error) => {
+            console.error('Error generando el archivo:', error);
+            alert('Ocurrió un error al generar el archivo.');
         })
         .finally(() => {
-            URL.revokeObjectURL(url);
-            button.href = '#';
+            // Liberar el objeto URL y restablecer el estado
+            if (url) URL.revokeObjectURL(url);
             downloadHappening = false;
         });
 });
+
+
 
 // CSS personalizado para resaltar el error y agregar un warning
 const style = document.createElement('style');
