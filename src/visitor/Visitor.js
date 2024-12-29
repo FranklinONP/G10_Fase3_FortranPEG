@@ -74,6 +74,15 @@ export default class Visitor {
          * @param {Node} node
          * @returns {T}
          */
+        visitLiteralRango(node){
+            throw new Error('Implement in subclass');
+        }
+	
+        /**
+         * @abstract
+         * @param {Node} node
+         * @returns {T}
+         */
         visitIdentificador(node){
             throw new Error('Implement in subclass');
         }

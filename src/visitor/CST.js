@@ -168,12 +168,12 @@ export class Clase {
 export class Rango {
     /**
      *
-     * @param {string} bottom
-	 * @param {string} top
+     * @param {string} inicio
+	 * @param {string} fin
      */
-    constructor(bottom, top) {
-        this.bottom = bottom;
-		this.top = top;
+    constructor(inicio, fin) {
+        this.inicio = inicio;
+		this.fin = fin;
     }
 
     /**
@@ -183,6 +183,29 @@ export class Rango {
      */
     accept(visitor) {
         return visitor.visitRango(this);
+    }
+}
+    
+
+/**
+ * @implements {Node}
+ */
+export class LiteralRango {
+    /**
+     *
+     * @param {string} contenido
+     */
+    constructor(contenido) {
+        this.contenido = contenido;
+    }
+
+    /**
+     * @template T
+     * @param {Visitor<T>} visitor
+     * @returns {T}
+     */
+    accept(visitor) {
+        return visitor.visitLiteralRango(this);
     }
 }
     
