@@ -136,3 +136,4 @@ tsconfig.json
 package.json
 package-lock.json
 .editorconfig
+/tools/Generator.js

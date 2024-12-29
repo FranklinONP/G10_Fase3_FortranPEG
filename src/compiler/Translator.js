@@ -129,7 +129,7 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitRango(node) {
-        return `acceptRange('${node.bottom}', '${node.top}')`;
+        return `acceptRange('${node.inicio}', '${node.fin}')`;
     }
     /**
      * @param {CST.Identificador} node
