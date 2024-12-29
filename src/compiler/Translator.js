@@ -92,7 +92,7 @@ export default class FortranTranslator {
             case '?':
                 return `
                 if (${condition} .or. .not. (${condition})) then
-                    exit
+                     continue
                 end if
                 `;
             default:
