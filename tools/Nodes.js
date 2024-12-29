@@ -12,7 +12,6 @@ const nodes = {
     String: { val: 'string', isCase: '?boolean' },
     Clase: { chars: '(string|Rango)[]', isCase: '?boolean' },
     Rango: { inicio: 'string', fin: 'string' },
-    //Por el momento el tipo de LiteralRango se deja en string pero esta pendiente
     LiteralRango: { contenido: 'string' },
     Identificador: { id: 'string' },
     Punto: {},

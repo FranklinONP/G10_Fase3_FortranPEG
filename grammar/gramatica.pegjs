@@ -94,13 +94,13 @@ corchetes
 // Regla para validar un rango como [A-Z]
 rango
     = inicio:$caracter "-" fin:$caracter {
-        return new  n.rango(inicio, fin);
+        return new  n.Rango(inicio, fin);
     }
 
 // Coincide con cualquier contenido que no incluya "]"
 contenido
     = contenido: (corchete / @$texto){
-        return new n.literalRango(contenido);                     //crear nodo literalRango
+        return new n.LiteralRango(contenido);                     //crear nodo literalRango
     }
 
 corchete

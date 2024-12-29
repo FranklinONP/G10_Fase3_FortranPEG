@@ -312,10 +312,10 @@ function peg$parse(input, options) {
         return contenido;
     };
   var peg$f11 = function(inicio, fin) {
-        return new  n.rango(inicio, fin);
+        return new  n.Rango(inicio, fin);
     };
   var peg$f12 = function(contenido) {
-        return new n.literalRango(contenido);                     //crear nodo literalRango
+        return new n.LiteralRango(contenido);                     //crear nodo literalRango
     };
   var peg$f13 = function() { return text() };
   var peg$currPos = options.peg$currPos | 0;
