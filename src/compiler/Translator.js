@@ -68,6 +68,10 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitExpresion(node) {
+        if(node.qty != undefined){
+            node.expr.qty = node.qty // inherit quantifier
+        } 
+
         const condition = node.expr.accept(this);
         switch (node.qty) {
             case '+':
@@ -110,6 +114,16 @@ export default class FortranTranslator {
     visitString(node) {
         return `acceptString('${node.val}')`;
     }
+
+    /**
+     * @param {CST.Grupo} node
+     * @this {Visitor}
+     */
+    visitGrupo(node) {
+        node.opciones.qty = node.qty
+        return node.opciones.accept(this);
+    }
+
     /**
      * @param {CST.Clase} node
      * @this {Visitor}

@@ -60,7 +60,11 @@ expresiones
   / val:$literales isCase:"i"? {
     return new n.String(val.replace(/['"]/g, ''), isCase);
   }
-  / "(" _ @opciones _ ")"
+  / "(" _ opciones:opciones _ ")" {
+    return new n.Grupo(opciones);
+  }
+
+
   / chars:corchetes isCase:"i"? {
     return new n.Clase(chars, isCase);
   }

@@ -140,6 +140,29 @@ export class String {
 /**
  * @implements {Node}
  */
+export class Grupo {
+    /**
+     *
+     * @param {Node} opciones
+     */
+    constructor(opciones) {
+        this.opciones = opciones;
+    }
+
+    /**
+     * @template T
+     * @param {Visitor<T>} visitor
+     * @returns {T}
+     */
+    accept(visitor) {
+        return visitor.visitGrupo(this);
+    }
+}
+    
+
+/**
+ * @implements {Node}
+ */
 export class Clase {
     /**
      *

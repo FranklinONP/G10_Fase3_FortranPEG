@@ -10,6 +10,7 @@ const nodes = {
     Union: { exprs: 'Expresion[]' },
     Expresion: { expr: 'Node', label: '?string', qty: '?string' },
     String: { val: 'string', isCase: '?boolean' },
+    Grupo: { opciones: 'Node' },
     Clase: { chars: '(string|Rango)[]', isCase: '?boolean' },
     Rango: { inicio: 'string', fin: 'string' },
     LiteralRango: { contenido: 'string' },

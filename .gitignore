@@ -131,9 +131,8 @@ dist
 
 
 
-#/tools/Generator.js
+tools/Generator.js
 tsconfig.json
 package.json
 package-lock.json
 .editorconfig
-/tools/Generator.js
