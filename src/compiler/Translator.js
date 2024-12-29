@@ -87,8 +87,9 @@ export default class FortranTranslator {
             switch (tipo) {
                 case 'unico1':
                     return `
+                        veces = 0
                         do d =1, ${min}
-                             if (.not. (${condition})) then
+                            if (.not. (${condition})) then
                                 exit
                             end if 
                             veces=veces+1
@@ -100,8 +101,9 @@ export default class FortranTranslator {
                         end if `;
                 case 'rango1':
                     return `
+                        veces = 0
                         do d =0, ${max-1}
-                             if (.not. (${condition})) then
+                            if (.not. (${condition})) then
                                 exit
                             end if 
                             veces=veces+1
