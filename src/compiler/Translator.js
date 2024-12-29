@@ -21,7 +21,7 @@ export default class FortranTranslator {
         return `
         function peg_${node.id}() result(accept)
             logical :: accept
-            integer :: i
+            integer :: i,d,veces
 
             accept = .false.
             ${node.expr.accept(this)}
@@ -79,39 +79,95 @@ export default class FortranTranslator {
         } 
 
         const condition = node.expr.accept(this);
-        switch (node.qty) {
-            case '+':
-                return `
-                if (.not. (${condition})) then
-                    cycle
-                end if
-                do while (.not. cursor > len(input))
-                    if (.not. (${condition})) then
-                        exit
-                    end if
-                end do
-                `;
-            case '*':
-                return `
-                do while (.not. cursor > len(input))
-                    if (.not. (${condition})) then
-                        exit
-                    end if
-                end do
-                `;
-            case '?':
-                return `
-                if (${condition} .or. .not. (${condition})) then
-                     continue
-                end if
-                `;
-            default:
-                return `
-                if (.not. (${condition})) then
-                    cycle
-                end if
-                `;
+
+        if(node.qty.min){
+            let tipo = node.qty.tipo;
+            let min = node.qty.min;
+            let max = node.qty.max;
+            switch (tipo) {
+                case 'unico1':
+                    return `
+                        do d =1, ${min}
+                             if (.not. (${condition})) then
+                                exit
+                            end if 
+                            veces=veces+1
+                        end do 
+                        if(veces /= ${min}) then
+                            accept = .false.
+                            veces = 0
+                            return
+                        end if `;
+                case 'rango1':
+                    return `
+                        do d =0, ${max-1}
+                             if (.not. (${condition})) then
+                                exit
+                            end if 
+                            veces=veces+1
+                        end do 
+                        if(veces < ${min} .or. veces>${max}) then
+                            accept = .false.
+                            veces = 0
+                            return
+                        end if `;
+                case 'unico2':
+                    return `do while (.true.)
+                        if (.not. (${condition})) then
+                            exit
+                        end if
+                    end do`;
+                case 'rango2':
+                    return `do while (.true.)
+                        if (.not. (${condition})) then
+                            exit
+                        end if
+                    end do`;
+                default:
+                    return `
+                        if (.not. (${condition})) then
+                            cycle
+                        end if
+                        `;
+            }
+
+        }else{
+            switch (node.qty) {
+                    case '+':
+                        return `
+                        if (.not. (${condition})) then
+                            cycle
+                        end if
+                        do while (.not. cursor > len(input))
+                            if (.not. (${condition})) then
+                                exit
+                            end if
+                        end do
+                        `;
+                    case '*':
+                        return `
+                        do while (.not. cursor > len(input))
+                            if (.not. (${condition})) then
+                                exit
+                            end if
+                        end do
+                        `;
+                    case '?':
+                        return `
+                        if (${condition} .or. .not. (${condition})) then
+                            continue
+                        end if
+                        `;
+                    default:
+                        return `
+                        if (.not. (${condition})) then
+                            cycle
+                        end if
+                        `;
+                }
         }
+
+   
     }
     /**
      * @param {CST.String} node

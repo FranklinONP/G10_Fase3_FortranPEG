@@ -44,7 +44,7 @@ union
   }
 
 expresion
-  = label:$(etiqueta/varios)? _ expr:expresiones _ qty:$([?+*]/conteo)? {
+  = label:$(etiqueta/varios)? _ expr:expresiones _ qty:($[?+*]/conteo)? {
     return new n.Expresion(expr, label, qty);
   }
 
@@ -78,10 +78,14 @@ expresiones
 // conteo = "|" parteconteo _ (_ delimitador )? _ "|"
 
 conteo
-  = "|" _ (numero / id:identificador) _ "|"
-  / "|" _ (numero / id:identificador)? _ ".." _ (numero / id2:identificador)? _ "|"
-  / "|" _ (numero / id:identificador)? _ "," _ opciones _ "|"
-  / "|" _ (numero / id:identificador)? _ ".." _ (numero / id2:identificador)? _ "," _ opciones _ "|"
+  = "|" _ inicio:(numero/identificador) _ "|" 
+                        {return {min: inicio, tipo: "unico1"}}
+  / "|" _ min:(numero / identificador)? _ ".." _ max:(numero / identificador)? _ "|" 
+                        {return {min: min, max: max, tipo: "rango1"}}
+  / "|" _ inicio:(numero / identificador)? _ "," _ opciones: opciones _ "|" 
+                        {return {min:inicio, opciones: opciones, tipo: "unico2"}}
+  / "|" _ inicio:(numero / identificador)? _ ".." _ fin:(numero /identificador)? _ "," _ opciones: opciones _ "|" 
+                        { return {min: inicio, max: fin, opciones:opciones, tipo:"rango2"} }  
 
 // parteconteo = identificador
 //             / [0-9]? _ ".." _ [0-9]?
