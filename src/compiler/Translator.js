@@ -7,6 +7,12 @@ import * as CST from '../visitor/CST.js';
  * @implements {Visitor}
  */
 export default class FortranTranslator {
+
+    constructor(){
+        this.arreglo_grupos = [];
+        this.contador_grupos = 0;
+    }
+    
     /**
      * @param {CST.Producciones} node
      * @this {Visitor}
@@ -121,7 +127,23 @@ export default class FortranTranslator {
      */
     visitGrupo(node) {
         node.opciones.qty = node.qty
-        return node.opciones.accept(this);
+
+        const indice = this.contador_grupos++;
+
+    let funcion = 
+    `function acceptGroup_${indice}() result(accept)
+        logical :: accept
+        integer :: i
+        accept = .false.
+
+        ${node.opciones.accept(this)}
+
+        accept = .true.
+     end function acceptGroup_${indice}`
+
+     this.arreglo_grupos.push(funcion);
+    return `acceptGroup_${indice}()`;
+
     }
 
     /**
