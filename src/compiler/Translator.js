@@ -114,11 +114,21 @@ export default class FortranTranslator {
                             return
                         end if `;
                 case 'unico2':
-                    return `do while (.true.)
-                        if (.not. (${condition})) then
-                            exit
-                        end if
-                    end do`;
+                    //let conca=node.qty.accept(this);
+                    let conca=node.qty.opciones.map((expr) => expr.accept(this)).join('\n');
+                    return `
+                        veces = 0
+                        do d =1, ${min}
+                            if (.not. (${condition})) then
+                                exit
+                            end if 
+                            veces=veces+1
+                        end do 
+                        if(veces /= ${min}) then
+                            accept = .false.
+                            veces = 0
+                            return
+                        end if `;
                 case 'rango2':
                     return `do while (.true.)
                         if (.not. (${condition})) then
