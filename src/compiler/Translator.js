@@ -316,14 +316,16 @@ export default class FortranTranslator {
                 }
         }
 
-   
     }
+
     /**
      * @param {CST.String} node
      * @this {Visitor}
      */
     visitString(node) {
-        return `acceptString('${node.val}')`;
+        const isCase = node.isCase ? '.true.' : '.false.';
+
+        return `acceptString('${node.val}', ${isCase})`;
     }
 
     /**
@@ -335,20 +337,19 @@ export default class FortranTranslator {
 
         const indice = this.contador_grupos++;
 
-    let funcion = 
-    `function acceptGroup_${indice}() result(accept)
-        logical :: accept
-        integer :: i,veces
-        accept = .false.
+        let funcion = 
+        `function acceptGroup_${indice}() result(accept)
+            logical :: accept
+            integer :: i,veces
+            accept = .false.
 
-        ${node.opciones.accept(this)}
+            ${node.opciones.accept(this)}
 
-        accept = .true.
-     end function acceptGroup_${indice}`
+            accept = .true.
+        end function acceptGroup_${indice}`
 
-     this.arreglo_grupos.push(funcion);
-    return `acceptGroup_${indice}()`;
-
+        this.arreglo_grupos.push(funcion);
+        return `acceptGroup_${indice}()`;
     }
 
     /**
@@ -357,14 +358,21 @@ export default class FortranTranslator {
      */
     visitClase(node) {
         let characterClass = [];
+
+        if (node.isCase) {
+            node.chars.forEach((char) => {
+                char.isCase = true
+            })
+        }
+
         const set = node.chars
             .filter((char) => char instanceof CST.LiteralRango)
-            .map((char) => `'${char.accept(this)}'`);
+            .map((char) => `'${node.isCase ? char.accept(this).toLowerCase() : char.accept(this)}'`);
         const ranges = node.chars
             .filter((char) => char instanceof CST.Rango)
             .map((range) => range.accept(this));
         if (set.length !== 0) {
-            characterClass = [`acceptSet([${set.join(',')}])`];
+            characterClass = [`acceptSet([${set.join(',')}], ${node.isCase ? '.true.' : '.false.'})`];
         }
         if (ranges.length !== 0) {
             characterClass = [...characterClass, ...ranges];
@@ -376,7 +384,8 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitRango(node) {
-        return `acceptRange('${node.inicio}', '${node.fin}')`;
+        const isCase = node.isCase ? '.true.' : '.false.';
+        return `acceptRange('${node.inicio}', '${node.fin}', ${isCase})`;
     }
     /**
      * @param {CST.Identificador} node
