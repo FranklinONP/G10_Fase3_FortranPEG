@@ -92,7 +92,12 @@ export default class FortranTranslator {
                 case 'unico1':
                     return `
                         veces = 0
-                        do d =1, ${min}
+                        if (.not. ${condition}) then
+                            cycle
+                        else
+                            veces=veces+1
+                        end if
+                        do d =1, ${min-1}
                             if (.not. (${condition})) then
                                 exit
                             end if 
