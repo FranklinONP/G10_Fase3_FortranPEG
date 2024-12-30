@@ -109,19 +109,41 @@ export default class FortranTranslator {
                             return
                         end if `;
                 case 'rango1':
-                    return `
+
+                    if(min == 1 && max == 1){
+
+                        return `
+                        if (.not. (${condition})) then
+                            cycle
+                        end if
+                        `;
+
+                    }else if(max == 1){
+                        return `
+                        if (${condition} .or. .not. (${condition})) then
+                            continue
+                        end if`
+                    }else{
+                        return `
                         veces = 0
-                        do d =0, ${max-1}
+                        if (.not. (${condition})) then
+                            cycle
+                        else
+                            veces=veces+1
+                        end if
+                        do d =0, ${max-2}
                             if (.not. (${condition})) then
                                 exit
                             end if 
                             veces=veces+1
                         end do 
-                        if(veces < ${min} .or. veces>${max}) then
+                        if(veces < ${min} .or. veces > ${max}) then
                             accept = .false.
                             veces = 0
                             return
-                        end if `;
+                        end if `
+                    }
+
                 case 'unico2':
                     let indice = this.contador_delimitadores++;
                 let funcion = 
@@ -141,15 +163,20 @@ export default class FortranTranslator {
 
                 return `
                     veces = 0
-                    do d =1, ${min}
-                        if (.not. (${condition})) then
-                            exit
-                        end if 
+                    if (.not. (${condition})) then
+                        cycle
+                    else
+                        veces=veces+1
+                    end if 
+                    do d =1, ${min-1}
                         if (d < ${min}) then
                             if (.not. ${delimitador}) then
                                 exit
                             end if
                         end if
+                        if (.not. (${condition})) then
+                            exit
+                        end if 
                         veces=veces+1
                     end do
                     if(veces /= ${min}) then
@@ -161,11 +188,43 @@ export default class FortranTranslator {
                 
 
                 case 'rango2':
-                    return `do while (.true.)
-                        if (.not. (${condition})) then
-                            exit
-                        end if
-                    end do`;
+                    
+                    let indice2 = this.contador_delimitadores++;
+                    let funcion2 = 
+                    `function acceptDelimiter_${indice2}() result(accept)
+                        logical :: accept
+                        integer :: i,veces
+                        accept = .false.
+
+                        ${node.qty.opciones.accept(this)}
+
+                        accept = .true.
+                    end function acceptDelimiter_${indice2}`
+
+                    this.arreglo_delimitadores.push(funcion2);
+
+                    const delimitador2 =  `acceptDelimiter_${indice2}()`;
+
+                    return `
+                        veces = 0
+                        do d =1, ${max-1}
+                            if (.not. (${condition})) then
+                                exit
+                            end if 
+                            if (d < ${min}) then
+                                if (.not. ${delimitador2}) then
+                                    exit
+                                end if
+                            end if
+                            veces=veces+1
+                        end do
+                        if(veces < ${min} .or. veces > ${max}) then
+                            accept = .false.
+                            veces = 0
+                            return
+                        end if`;
+
+
                 default:
                     return `
                         if (.not. (${condition})) then
