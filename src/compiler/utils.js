@@ -42,6 +42,7 @@ module parser
     ${cst.map((rules) => rules.accept(translator)).join('\n')}
 
     ${translator.arreglo_grupos.join('\n')}
+    ${translator.arreglo_delimitadores.join('\n')}
 
     function acceptString(str) result(accept)
         character(len=*) :: str

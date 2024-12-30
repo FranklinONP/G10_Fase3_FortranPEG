@@ -11,6 +11,8 @@ export default class FortranTranslator {
     constructor(){
         this.arreglo_grupos = [];
         this.contador_grupos = 0;
+        this.arreglo_delimitadores = [];
+        this.contador_delimitadores = 0;
     }
     
     /**
@@ -76,11 +78,13 @@ export default class FortranTranslator {
     visitExpresion(node) {
         if(node.qty != undefined){
             node.expr.qty = node.qty // inherit quantifier
-        } 
+        }
 
         const condition = node.expr.accept(this);
 
-        if(node.qty.min){
+        
+        if(node.qty!=undefined && node.qty != "?" && node.qty != "*"  && node.qty != "+"){
+
             let tipo = node.qty.tipo;
             let min = node.qty.min;
             let max = node.qty.max;
@@ -114,21 +118,43 @@ export default class FortranTranslator {
                             return
                         end if `;
                 case 'unico2':
-                    //let conca=node.qty.accept(this);
-                    let conca=node.qty.opciones.map((expr) => expr.accept(this)).join('\n');
-                    return `
-                        veces = 0
-                        do d =1, ${min}
-                            if (.not. (${condition})) then
+                    let indice = this.contador_delimitadores++;
+                let funcion = 
+                `function acceptDelimiter_${indice}() result(accept)
+                    logical :: accept
+                    integer :: i,veces
+                    accept = .false.
+
+                    ${node.qty.opciones.accept(this)}
+
+                    accept = .true.
+                end function acceptDelimiter_${indice}`
+
+                this.arreglo_delimitadores.push(funcion);
+
+                const delimitador =  `acceptDelimiter_${indice}()`;
+
+                return `
+                    veces = 0
+                    do d =1, ${min}
+                        if (.not. (${condition})) then
+                            exit
+                        end if 
+                        if (d < ${min}) then
+                            if (.not. ${delimitador}) then
                                 exit
-                            end if 
-                            veces=veces+1
-                        end do 
-                        if(veces /= ${min}) then
-                            accept = .false.
-                            veces = 0
-                            return
-                        end if `;
+                            end if
+                        end if
+                        veces=veces+1
+                    end do
+                    if(veces /= ${min}) then
+                        
+                        accept = .false.
+                        veces = 0
+                        return
+                    end if `;
+                
+
                 case 'rango2':
                     return `do while (.true.)
                         if (.not. (${condition})) then
@@ -201,7 +227,7 @@ export default class FortranTranslator {
     let funcion = 
     `function acceptGroup_${indice}() result(accept)
         logical :: accept
-        integer :: i
+        integer :: i,veces
         accept = .false.
 
         ${node.opciones.accept(this)}
