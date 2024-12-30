@@ -110,6 +110,53 @@ export default class FortranTranslator {
                         end if `;
                 case 'rango1':
 
+                    if((min == undefined && max == undefined) || (min == 0 && max == undefined)){
+                        return `
+                        do while (.not. cursor > len(input))
+                            if (.not. (${condition})) then
+                                exit
+                            end if
+                        end do
+                        `;
+                    }
+
+                    if(min == undefined && max != undefined){
+                        return `
+                        veces = 0
+                        do d =0, ${max-1}
+                            if (.not. (${condition})) then
+                                exit
+                            end if 
+                            veces=veces+1
+                        end do
+                        if(veces > ${max}) then
+                            accept = .false.
+                            veces = 0
+                            return
+                        end if `;
+                    }
+
+                    if(min != undefined && max == undefined){
+                        return `
+                        veces = 0
+                        if (.not. (${condition})) then
+                            cycle
+                        else
+                            veces=veces+1
+                        end if
+                        do while(.not. cursor > len(input))
+                            if (.not. (${condition})) then
+                                exit
+                            end if 
+                            veces=veces+1
+                        end do
+                        if(veces < ${min}) then
+                            accept = .false.
+                            veces = 0
+                            return
+                        end if `;
+                    }
+
                     if(min == 1 && max == 1){
 
                         return `
