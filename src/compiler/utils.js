@@ -6,7 +6,7 @@ import FortranTranslator from './Translator.js';
  *
  * @param {Produccion[]} cst
  */
-export default async function generateParser(cst) {
+export default  function generateParser(cst) {
     /** @type(Visitor) */
     const translator = new FortranTranslator();
     return `

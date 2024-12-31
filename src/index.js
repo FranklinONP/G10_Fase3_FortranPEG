@@ -1,9 +1,7 @@
 import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.50.0/+esm';
 import { parse } from './parser/gramatica.js';
-import generateParser from './compiler/utils.js';
-
-/** @typedef {import('./visitor/CST.js').Producciones} Produccion*/
-/** @typedef {import('./visitor/Visitor.js').default<string>} Visitor*/
+import { ErrorReglas } from './parser/error.js';
+import generateParser from './compiler/utils.js'
 
 export let ids = [];
 export let usos = [];
@@ -28,29 +26,31 @@ const salida = monaco.editor.create(document.getElementById('salida'), {
 let decorations = [];
 
 // Analizar contenido del editor
-/** @type {Produccion[]} */
-let cst;
 const analizar = () => {
     const entrada = editor.getValue();
     ids.length = 0;
     usos.length = 0;
     errores.length = 0;
     try {
-        cst = parse(entrada);
-
+        const cst = parse(entrada);
         if (errores.length > 0) {
             salida.setValue(`Error: ${errores[0].message}`);
-            cst = null;
             return;
         } else {
-            salida.setValue('Análisis Exitoso');
+            const fileContents = generateParser(cst);
+            const blob = new Blob([fileContents], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const button = document.getElementById('ButtomDownload');
+            button.href = url;
+            salida.setValue(fileContents);
         }
 
         // salida.setValue("Análisis Exitoso");
         // Limpiar decoraciones previas si la validación es exitosa
         decorations = editor.deltaDecorations(decorations, []);
+
     } catch (e) {
-        cst = null;
+        console.log(e)
         if (e.location === undefined) {
             salida.setValue(`Error: ${e.message}`);
         } else {
@@ -92,47 +92,6 @@ const analizar = () => {
 editor.onDidChangeModelContent(() => {
     analizar();
 });
-
-let downloadHappening = false;
-const button = document.getElementById('botonDescargar');
-
-button.addEventListener('click', () => {
-    // Prevenir múltiples descargas simultáneas
-    if (downloadHappening) return;
-
-    if (!cst) {
-        alert('Escribe una gramatica valida');
-        return;
-    }
-
-    downloadHappening = true; // Bloquear descargas adicionales mientras ocurre una
-
-    let url;
-    generateParser(cst)
-        .then((fileContents) => {
-            const blob = new Blob([fileContents], { type: 'text/plain' });
-            url = URL.createObjectURL(blob);
-
-            // Crear un enlace temporal para descargar el archivo
-            const tempLink = document.createElement('a');
-            tempLink.href = url;
-            tempLink.download = 'parser.f90'; // Nombre del archivo
-            document.body.appendChild(tempLink); // Añadir el enlace al DOM
-            tempLink.click(); // Disparar el clic en el enlace
-            document.body.removeChild(tempLink); // Eliminar el enlace del DOM
-        })
-        .catch((error) => {
-            console.error('Error generando el archivo:', error);
-            alert('Ocurrió un error al generar el archivo.');
-        })
-        .finally(() => {
-            // Liberar el objeto URL y restablecer el estado
-            if (url) URL.revokeObjectURL(url);
-            downloadHappening = false;
-        });
-});
-
-
 
 // CSS personalizado para resaltar el error y agregar un warning
 const style = document.createElement('style');
