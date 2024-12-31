@@ -11,7 +11,16 @@ export default class Visitor {
          * @param {Node} node
          * @returns {T}
          */
-        visitProducciones(node){
+        visitGrammar(node){
+            throw new Error('Implement in subclass');
+        }
+	
+        /**
+         * @abstract
+         * @param {Node} node
+         * @returns {T}
+         */
+        visitRegla(node){
             throw new Error('Implement in subclass');
         }
 	
@@ -30,15 +39,6 @@ export default class Visitor {
          * @returns {T}
          */
         visitUnion(node){
-            throw new Error('Implement in subclass');
-        }
-	
-        /**
-         * @abstract
-         * @param {Node} node
-         * @returns {T}
-         */
-        visitExpresion(node){
             throw new Error('Implement in subclass');
         }
 	
@@ -93,6 +93,60 @@ export default class Visitor {
          * @returns {T}
          */
         visitIdentificador(node){
+            throw new Error('Implement in subclass');
+        }
+	
+        /**
+         * @abstract
+         * @param {Node} node
+         * @returns {T}
+         */
+        visitPluck(node){
+            throw new Error('Implement in subclass');
+        }
+	
+        /**
+         * @abstract
+         * @param {Node} node
+         * @returns {T}
+         */
+        visitLabel(node){
+            throw new Error('Implement in subclass');
+        }
+	
+        /**
+         * @abstract
+         * @param {Node} node
+         * @returns {T}
+         */
+        visitAnnotated(node){
+            throw new Error('Implement in subclass');
+        }
+	
+        /**
+         * @abstract
+         * @param {Node} node
+         * @returns {T}
+         */
+        visitAssertion(node){
+            throw new Error('Implement in subclass');
+        }
+	
+        /**
+         * @abstract
+         * @param {Node} node
+         * @returns {T}
+         */
+        visitNegAssertion(node){
+            throw new Error('Implement in subclass');
+        }
+	
+        /**
+         * @abstract
+         * @param {Node} node
+         * @returns {T}
+         */
+        visitPredicate(node){
             throw new Error('Implement in subclass');
         }
 	

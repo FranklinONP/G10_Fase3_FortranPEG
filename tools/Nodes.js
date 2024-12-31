@@ -57,6 +57,11 @@ const nodes = {
     NegAssertion: {
         assertion: 'Node' 
     },
+    Predicate: {
+        returnType: 'string',
+        code: 'string',
+        params: '{ [label: string]: string }',
+    },
     Punto: {},
     Fin: {},
 };
