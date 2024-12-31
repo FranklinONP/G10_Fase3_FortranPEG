@@ -8,11 +8,30 @@ import * as CST from '../visitor/CST.js';
  */
 export default class FortranTranslator {
 
+     /** @type {ActionTypes} */
+     actionReturnTypes;
+     /** @type {string[]} */
+     actions;
+     /** @type {boolean} */
+     translatingStart;
+     /** @type {string} */
+     currentRule;
+     /** @type {number} */
+     currentChoice;
+     /** @type {number} */
+     currentExpr;
+
     constructor(){
         this.arreglo_grupos = [];
         this.contador_grupos = 0;
         this.arreglo_delimitadores = [];
         this.contador_delimitadores = 0;
+        this.actionReturnTypes = returnTypes;
+        this.actions = [];
+        this.translatingStart = false;
+        this.currentRule = '';
+        this.currentChoice = 0;
+        this.currentExpr = 0;
     }
     
     /**
@@ -71,11 +90,12 @@ export default class FortranTranslator {
     visitUnion(node) {
         return node.exprs.map((expr) => expr.accept(this)).join('\n');
     }
+    
     /**
      * @param {CST.Expresion} node
      * @this {Visitor}
      */
-    visitExpresion(node) {
+    /*visitExpresion(node) {
         if(node.qty != undefined){
             node.expr.qty = node.qty // inherit quantifier
         }
@@ -316,6 +336,110 @@ export default class FortranTranslator {
                 }
         }
 
+    }*/
+
+    /**
+     * @param {CST.Assertion} node
+     * @this {Visitor}
+     */
+    visitAssertion(node) {
+        throw new Error('Method not implemented.');
+    }
+
+    /**
+     * @param {CST.NegAssertion} node
+     * @this {Visitor}
+     */
+    visitNegAssertion(node) {
+        throw new Error('Method not implemented.');
+    }
+
+    /**
+     * @param {CST.Predicate} node
+     * @this {Visitor}
+     */
+    visitPredicate(node) {
+        return Template.action({
+            ruleId: this.currentRule,
+            choice: this.currentChoice,
+            signature: Object.keys(node.params),
+            returnType: node.returnType,
+            paramDeclarations: Object.entries(node.params).map(
+                ([label, ruleId]) =>
+                    `${getReturnType(
+                        getActionId(ruleId, this.currentChoice),
+                        this.actionReturnTypes
+                    )} :: ${label}`
+            ),
+            code: node.code,
+        });
+    }
+
+    /**
+     * @param {CST.Pluck} node
+     * @this {Visitor}
+     */
+    visitPluck(node) {
+        return node.labeledExpr.accept(this);
+    }
+
+    /**
+     * @param {CST.Label} node
+     * @this {Visitor}
+     */
+    visitLabel(node) {
+        return node.annotatedExpr.accept(this);
+    }
+
+    /**
+     * @param {CST.Annotated} node
+     * @this {Visitor}
+     */
+    visitAnnotated(node) {
+        if (node.qty && typeof node.qty === 'string') {
+            if (node.expr instanceof CST.Identificador) {
+                // TODO: Implement quantifiers (i.e., ?, *, +)
+                return `${getExprId(
+                    this.currentChoice,
+                    this.currentExpr
+                )} = ${node.expr.accept(this)}`;
+            }
+            return Template.strExpr({
+                quantifier: node.qty,
+                expr: node.expr.accept(this),
+                destination: getExprId(this.currentChoice, this.currentExpr),
+            });
+        } else if (node.qty) {
+            // TODO: Implement repetitions (e.g., |3|, |1..3|, etc...)
+            throw new Error('Repetitions not implemented.');
+        } else {
+            if (node.expr instanceof CST.Identificador) {
+                return `${getExprId(
+                    this.currentChoice,
+                    this.currentExpr
+                )} = ${node.expr.accept(this)}`;
+            }
+            return Template.strExpr({
+                expr: node.expr.accept(this),
+                destination: getExprId(this.currentChoice, this.currentExpr),
+            });
+        }
+    }
+
+    /**
+     * @param {CST.Assertion} node
+     * @this {Visitor}
+     */
+    visitAssertion(node) {
+        throw new Error('Method not implemented.');
+    }
+    
+    /**
+     * @param {CST.NegAssertion} node
+     * @this {Visitor}
+     */
+    visitNegAssertion(node) {
+        throw new Error('Method not implemented.');
     }
 
     /**
