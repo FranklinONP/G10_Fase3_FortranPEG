@@ -472,7 +472,7 @@ export default class FortranTranslator {
                     `${getReturnType(
                         getActionId(ruleId, this.currentChoice),
                         this.actionReturnTypes
-                    )} :: ${label}`
+                    )} ${(node.qty && node.qty != "?") ? ", dimension(:)":""} :: ${label}`
             ),
             code: node.code,
         });

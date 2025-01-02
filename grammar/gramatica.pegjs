@@ -9,6 +9,9 @@
     import { errores } from '../index.js'
 
     import * as n from '../visitor/CST.js';
+
+    let qty_actual = ""
+    let isID = false
 }}
 
 gramatica
@@ -40,6 +43,7 @@ regla
 
 opciones
   = expr:union rest:(_ "/" _ @union)* {
+    isID = false // REVISAR CUIDADO
     return new n.Opciones([expr, ...rest]);
   }
 
@@ -84,12 +88,16 @@ label
 
 annotated
   = text:"$"? _ expr:match _ qty:([?+*]/conteo)? {
+
+    if(isID) qty_actual = qty
+    isID = false
     return new n.Annotated(expr, qty, text ? true : false);
   }
 
 match
   = id:identificador {
     usos.push(id)
+    isID = true
     return new n.Identificador(id);
   }
   / val:$literales isCase:"i"? {
@@ -115,7 +123,7 @@ conteo
 
 predicate
   = "{" [ \t\n\r]* returnType:predicateReturnType code:$[^}]* "}" {
-    return new n.Predicate(returnType, code, {})
+    return new n.Predicate(returnType, code, {}, qty_actual)
   }
 
 predicateReturnType
