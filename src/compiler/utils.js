@@ -41,7 +41,16 @@ export function getActionId(ruleId, choice) {
  * @param {ActionTypes} actionReturnTypes
  * @returns
  */
-export function getReturnType(functionId, actionReturnTypes) {
+export function getReturnType(functionId, actionReturnTypes, isArray = false) {
+
+    if(actionReturnTypes[functionId] != undefined && actionReturnTypes[functionId].includes('pointer')) {
+        console.log("pinte")
+    }
+
+    if (isArray) {
+        return actionReturnTypes[functionId]+", allocatable" ?? 'character(len=:), allocatable';
+    }
+
     return actionReturnTypes[functionId] ?? 'character(len=:), allocatable';
 }
 

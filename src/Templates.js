@@ -42,40 +42,61 @@ module parser
 
    ${data.actions.join('\n')}
 
-   function acceptString(str) result(accept)
+   function acceptString(str, peg_isCase) result(accept)
        character(len=*) :: str
-       logical :: accept
+       logical :: accept, peg_isCase
        integer :: offset
 
        offset = len(str) - 1
-       if (str /= input(cursor:cursor + offset)) then
-           accept = .false.
-           return
-       end if
+       if(.not. peg_isCase) then
+            if (str /= input(cursor:cursor + offset)) then
+                accept = .false.
+                return
+            end if
+        else
+            if(tolower(str) /= tolower(input(cursor:cursor + offset))) then
+                accept = .false.
+                return
+            end if
+        end if
        cursor = cursor + len(str)
        accept = .true.
    end function acceptString
 
-   function acceptRange(bottom, top) result(accept)
+   function acceptRange(bottom, top, peg_isCase) result(accept)
        character(len=1) :: bottom, top
-       logical :: accept
+       logical :: accept, peg_isCase
 
-       if(.not. (input(cursor:cursor) >= bottom .and. input(cursor:cursor) <= top)) then
-           accept = .false.
-           return
-       end if
+       if(.not. peg_isCase) then
+            if(.not. (input(cursor:cursor) >= bottom .and. input(cursor:cursor) <= top)) then
+                accept = .false.
+                return
+            end if
+        else
+            if(.not. (tolower(input(cursor:cursor)) >= tolower(bottom) .and. tolower(input(cursor:cursor)) <= tolower(top))) then
+                accept = .false.
+                return
+            end if
+        end if
        cursor = cursor + 1
        accept = .true.
    end function acceptRange
 
-   function acceptSet(set) result(accept)
+   function acceptSet(set, peg_isCase) result(accept)
        character(len=1), dimension(:) :: set
-       logical :: accept
+       logical :: accept, peg_isCase
 
-       if(.not. (findloc(set, input(cursor:cursor), 1) > 0)) then
-           accept = .false.
-           return
-       end if
+       if(.not. peg_isCase) then
+            if(.not. (findloc(set, input(cursor:cursor), 1) > 0)) then
+                accept = .false.
+                return
+            end if
+        else
+            if(.not. (findloc(set, tolower(input(cursor:cursor)), 1) > 0)) then
+                accept = .false.
+                return
+            end if
+        end if
        cursor = cursor + 1
        accept = .true.
    end function acceptSet
@@ -90,6 +111,18 @@ module parser
        cursor = cursor + 1
        accept = .true.
    end function acceptPeriod
+
+   function tolower(str) result(lower_str)
+        character(len=*), intent(in) :: str
+        character(len=len(str)) :: lower_str
+        integer :: i
+        lower_str = str 
+        do i = 1, len(str)
+            if (iachar(str(i:i)) >= iachar('A') .and. iachar(str(i:i)) <= iachar('Z')) then
+                lower_str(i:i) = achar(iachar(str(i:i)) + 32)
+            end if
+        end do
+    end function tolower
 
    function acceptEOF() result(accept)
        logical :: accept
@@ -128,6 +161,7 @@ module parser
 
        cast = str
    end function strToStr
+
 end module parser
 `;
 
@@ -201,29 +235,87 @@ export const union = (data) => `
 * @returns
 */
 export const strExpr = (data) => {
-   if (!data.quantifier) {
-       return `
-               lexemeStart = cursor
-               if(.not. ${data.expr}) cycle
-               ${data.destination} = consumeInput()
-       `;
-   }
-   switch (data.quantifier) {
-       case '+':
-           return `
-               lexemeStart = cursor
-               if (.not. ${data.expr}) cycle
-               do while (.not. cursor > len(input))
-                   if (.not. ${data.expr}) exit
-               end do
-               ${data.destination} = consumeInput()
-           `;
-       default:
-           throw new Error(
-               `'${data.quantifier}' quantifier needs implementation`
-           );
-   }
+    if (!data.quantifier) {
+        return `
+                lexemeStart = cursor
+                if(.not. ${data.expr}) cycle
+                ${data.destination} = consumeInput()
+        `;
+    }
+    switch (data.quantifier) {
+        case '+':
+            return `
+                lexemeStart = cursor
+                if (.not. ${data.expr}) cycle
+                do while (.not. cursor > len(input))
+                    if (.not. ${data.expr}) exit
+                end do
+                ${data.destination} = consumeInput()
+            `;
+        case '*':
+            return '! * quantifier not implemented string';
+        default:
+            throw new Error(
+                `'${data.quantifier}' quantifier needs implementation`
+            );
+    }
 };
+
+/**
+*
+* @param {{
+    *  expr: string;
+    *  destination: string
+    *  quantifier?: string;
+    * }} data
+    * @returns
+    */
+    export const idExpr = (data) => {
+        if (!data.quantifier) {
+            return `
+                    lexemeStart = cursor
+                    if(.not. ${data.expr}) cycle
+                    ${data.destination} = consumeInput()
+            `;
+        }
+        switch (data.quantifier) {
+            case '+':
+                let expr = data.expr.split('(')[0]
+                return `
+                    cursor_actual = cursor
+                    lexemeStart = cursor
+                    if (.not. ${expr}_logical()) cycle
+                    do while (.not. cursor > len(input))
+                        if (.not. ${expr}_logical()) exit
+                    end do
+                    ${data.destination} = consumeInput()
+                    cursor = cursor_actual
+                `;
+            case '*':
+                return `
+                    len = 0
+                    allocate(${data.destination}(0))
+
+                    ${data.destination}_value = ${data.expr}
+                    do while ( .not. cursor > len(input))
+                        len = size(${data.destination}) + 1
+                        if(allocated(${data.destination}_copia)) deallocate(${data.destination}_copia)
+                        allocate(${data.destination}_copia(len))
+                        ${data.destination}_copia(1:size(${data.destination})) = ${data.destination}
+                        ${data.destination}_copia(len) = ${data.destination}_value
+                        if(allocated(${data.destination})) deallocate(${data.destination})
+                        allocate(${data.destination}(len))
+                        ${data.destination}(1:len) = ${data.destination}_copia
+
+                        ${data.destination}_value = ${data.expr}
+                    end do
+                `;
+            default:
+                throw new Error(
+                    `'${data.quantifier}' quantifier needs implementation`
+                );
+        }
+    };
 
 /**
 *

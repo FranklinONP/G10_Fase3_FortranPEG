@@ -35,6 +35,7 @@ export default class FortranTranslator {
         this.currentRule = '';
         this.currentChoice = 0;
         this.currentExpr = 0;
+        // this.funciones = [];
     }
     
     /**
@@ -53,6 +54,7 @@ export default class FortranTranslator {
                 this.actionReturnTypes
             ),
             actions: this.actions,
+            // funciones_logicas: this.funciones,
             rules,
         });
     }
@@ -79,12 +81,43 @@ export default class FortranTranslator {
                     .filter((expr) => expr instanceof CST.Pluck)
                     .map((label, j) => {
                         const expr = label.labeledExpr.annotatedExpr.expr;
+
+                        if(label.labeledExpr.annotatedExpr.qty != undefined){
+                            return `${
+                                expr instanceof CST.Identificador
+                                    ? getReturnType(
+                                        getActionId(expr.id, i),
+                                        this.actionReturnTypes,
+                                        true
+                                    )
+                                    : 'character(len=:), allocatable'
+                            } :: expr_${i}_${j}(:)
+                            ${
+                                expr instanceof CST.Identificador
+                                    ? getReturnType(
+                                        getActionId(expr.id, i),
+                                        this.actionReturnTypes,
+                                        true
+                                    )
+                                    : 'character(len=:), allocatable'
+                            } :: expr_${i}_${j}_copia(:)
+                            integer :: len
+                            ${
+                                expr instanceof CST.Identificador
+                                    ? getReturnType(
+                                        getActionId(expr.id, i),
+                                        this.actionReturnTypes
+                                    )
+                                    : 'character(len=:), allocatable'
+                            } :: expr_${i}_${j}_value`;
+                        }
+
                         return `${
                             expr instanceof CST.Identificador
                                 ? getReturnType(
-                                      getActionId(expr.id, i),
-                                      this.actionReturnTypes
-                                  )
+                                    getActionId(expr.id, i),
+                                    this.actionReturnTypes
+                                )
                                 : 'character(len=:), allocatable'
                         } :: expr_${i}_${j}`;
                     })
@@ -93,6 +126,26 @@ export default class FortranTranslator {
         });
 
         this.translatingStart = false;
+
+        // this.funciones.push( `
+        // function peg_${node.id}_logical() result(accept)
+        //     logical :: accept
+        //     integer :: i
+
+        //     accept = .false.
+        //     ${node.expr.accept(this)}
+        //     ${
+        //         node.start
+        //             ? `
+        //             if (.not. acceptEOF()) then
+        //                 return
+        //             end if
+        //             `
+        //             : ''
+        //     }
+        //     accept = .true.
+        // end function peg_${node.id}_logical
+        // `)
 
         return ruleTranslation;
     }
@@ -452,10 +505,11 @@ export default class FortranTranslator {
         if (node.qty && typeof node.qty === 'string') {
             if (node.expr instanceof CST.Identificador) {
                 // TODO: Implement quantifiers (i.e., ?, *, +)
-                return `${getExprId(
-                    this.currentChoice,
-                    this.currentExpr
-                )} = ${node.expr.accept(this)}`;
+                return Template.idExpr({
+                    quantifier: node.qty,
+                    expr: node.expr.accept(this),
+                    destination: getExprId(this.currentChoice, this.currentExpr),
+                });
             }
             return Template.strExpr({
                 quantifier: node.qty,
@@ -502,7 +556,7 @@ export default class FortranTranslator {
     visitString(node) {
         const isCase = node.isCase ? '.true.' : '.false.';
 
-        return `acceptString('${node.val}')`;
+        return `acceptString('${node.val}', ${isCase})`;
     }
 
     /**
@@ -549,7 +603,7 @@ export default class FortranTranslator {
             .filter((char) => char instanceof CST.Rango)
             .map((range) => range.accept(this));
         if (set.length !== 0) {
-            characterClass = [`acceptSet([${set.join(',')}])`];
+            characterClass = [`acceptSet([${set.join(',')}], ${node.isCase ? '.true.' : '.false.'})`];
         }
         if (ranges.length !== 0) {
             characterClass = [...characterClass, ...ranges];
@@ -565,7 +619,7 @@ export default class FortranTranslator {
      */
     visitRango(node) {
         const isCase = node.isCase ? '.true.' : '.false.';
-        return `acceptRange('${node.inicio}', '${node.fin}')`;
+        return `acceptRange('${node.inicio}', '${node.fin}', ${isCase})`;
     }
     /**
      * @param {CST.Identificador} node
