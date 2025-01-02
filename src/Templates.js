@@ -35,7 +35,7 @@ module parser
        input = str
        cursor = 1
 
-       res = ${data.startingRuleId}()
+       ${data.startingRuleType.includes('pointer') ? `res => ` : `res = `}${data.startingRuleId}()
    end function parse
 
    ${data.rules.join('\n')}
@@ -161,7 +161,8 @@ module parser
 
        cast = str
    end function strToStr
-
+   ! Subroutines for quantifiers 
+   ${data.funciones_cuantificadores.join('\n')}
 end module parser
 `;
 
@@ -179,7 +180,10 @@ export const rule = (data) => `
    function peg_${data.id}() result (res)
        ${data.returnType} :: res
        ${data.exprDeclarations.join('\n')}
+       integer :: current_size, element_count
+       integer :: initial_size = 1, increment_size = 1
        integer :: i
+       character(len=:), allocatable :: no_guardado
 
        savePoint = cursor
        ${data.expr}
@@ -293,21 +297,17 @@ export const strExpr = (data) => {
                 `;
             case '*':
                 return `
-                    len = 0
-                    allocate(${data.destination}(0))
+                    current_size = initial_size
+                    element_count = 0
+                    allocate(${data.destination}(current_size))
 
-                    ${data.destination}_value = ${data.expr}
                     do while ( .not. cursor > len(input))
-                        len = size(${data.destination}) + 1
-                        if(allocated(${data.destination}_copia)) deallocate(${data.destination}_copia)
-                        allocate(${data.destination}_copia(len))
-                        ${data.destination}_copia(1:size(${data.destination})) = ${data.destination}
-                        ${data.destination}_copia(len) = ${data.destination}_value
-                        if(allocated(${data.destination})) deallocate(${data.destination})
-                        allocate(${data.destination}(len))
-                        ${data.destination}(1:len) = ${data.destination}_copia
+                        if(element_count == current_size) then
+                            call expand_array_${data.id}_${data.destination}(${data.destination}, current_size, increment_size)
+                        end if
 
-                        ${data.destination}_value = ${data.expr}
+                        element_count = element_count + 1
+                        ${data.destination}(element_count) = ${data.expr}
                     end do
                 `;
             default:
@@ -336,7 +336,7 @@ export const strResultExpr = (data) => `
 * }} data
 * @returns
 */
-export const fnResultExpr = (data) => `
+export const fnResultExpr = (data) => data.isPointer ? `res => ${data.fnId}(${data.exprs.join(', ')})` : `
                res = ${data.fnId}(${data.exprs.join(', ')})
 `;
 

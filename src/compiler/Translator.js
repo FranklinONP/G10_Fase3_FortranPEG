@@ -35,7 +35,8 @@ export default class FortranTranslator {
         this.currentRule = '';
         this.currentChoice = 0;
         this.currentExpr = 0;
-        // this.funciones = [];
+        this.funciones_expand = [];
+        this.id_actual = ""
     }
     
     /**
@@ -54,7 +55,7 @@ export default class FortranTranslator {
                 this.actionReturnTypes
             ),
             actions: this.actions,
-            // funciones_logicas: this.funciones,
+            funciones_cuantificadores: this.funciones_expand,
             rules,
         });
     }
@@ -83,33 +84,28 @@ export default class FortranTranslator {
                         const expr = label.labeledExpr.annotatedExpr.expr;
 
                         if(label.labeledExpr.annotatedExpr.qty != undefined){
-                            return `${
-                                expr instanceof CST.Identificador
-                                    ? getReturnType(
-                                        getActionId(expr.id, i),
-                                        this.actionReturnTypes,
-                                        true
-                                    )
-                                    : 'character(len=:), allocatable'
-                            } :: expr_${i}_${j}(:)
-                            ${
-                                expr instanceof CST.Identificador
-                                    ? getReturnType(
-                                        getActionId(expr.id, i),
-                                        this.actionReturnTypes,
-                                        true
-                                    )
-                                    : 'character(len=:), allocatable'
-                            } :: expr_${i}_${j}_copia(:)
-                            integer :: len
-                            ${
-                                expr instanceof CST.Identificador
-                                    ? getReturnType(
-                                        getActionId(expr.id, i),
-                                        this.actionReturnTypes
-                                    )
-                                    : 'character(len=:), allocatable'
-                            } :: expr_${i}_${j}_value`;
+                            const type = expr instanceof CST.Identificador
+                            ? getReturnType(
+                                getActionId(expr.id, i),
+                                this.actionReturnTypes,
+                                true
+                            )
+                            : 'character(len=:), allocatable'
+
+                            if (expr instanceof CST.Identificador) this.funciones_expand.push(`subroutine expand_array_${expr.id}_expr_${i}_${j}(array, current_size, increment_size)
+        ${type} :: array(:)
+        integer :: current_size, increment_size
+        ${type} :: temp_array(:)
+
+        allocate(temp_array(current_size + increment_size))
+        temp_array(1:current_size) = array
+        deallocate(array)
+        array = temp_array
+        current_size = current_size + increment_size
+    end subroutine expand_array_${expr.id}_expr_${i}_${j}`)
+                                this.id_actual = expr.id
+
+                            return `${type} :: expr_${i}_${j}${expr instanceof CST.Identificador ? `(:)` : ''}`;
                         }
 
                         return `${
@@ -191,6 +187,7 @@ export default class FortranTranslator {
             );
             resultExpr = Template.fnResultExpr({
                 fnId: getActionId(this.currentRule, this.currentChoice),
+                isPointer: this.actionReturnTypes[currFnId].includes('pointer'),
                 exprs: neededExprs.length > 0 ? neededExprs : [],
             });
         } else {
@@ -508,6 +505,7 @@ export default class FortranTranslator {
                 return Template.idExpr({
                     quantifier: node.qty,
                     expr: node.expr.accept(this),
+                    id: this.id_actual,
                     destination: getExprId(this.currentChoice, this.currentExpr),
                 });
             }
@@ -538,7 +536,10 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitAssertion(node) {
-        throw new Error('Method not implemented.');
+        return `lexemeStart = cursor
+        if (.not. ${node.assertion.accept(this)}) cycle
+            no_guardado = consumeInput()
+        `;
     }
     
     /**
@@ -546,15 +547,10 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitNegAssertion(node) {
-        // return Template.strExpr({
-        //     val: node.assertion
-        //     isCase: node.
-            
-        // });
-        const val = node.assertion
-
-        
-        return val.accept(this)
+        return `lexemeStart = cursor
+        if (${node.assertion.accept(this)}) cycle
+            no_guardado = consumeInput()
+        `;
     }
 
     /**
