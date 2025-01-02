@@ -546,7 +546,15 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitNegAssertion(node) {
-        throw new Error('Method not implemented.');
+        // return Template.strExpr({
+        //     val: node.assertion
+        //     isCase: node.
+            
+        // });
+        const val = node.assertion
+
+        
+        return val.accept(this)
     }
 
     /**
