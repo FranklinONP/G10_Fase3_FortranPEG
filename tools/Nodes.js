@@ -62,6 +62,7 @@ const nodes = {
         returnType: 'string',
         code: 'string',
         params: '{ [label: string]: string }',
+        qty: '?string',
     },
     Punto: {},
     Fin: {},

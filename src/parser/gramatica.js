@@ -15,6 +15,9 @@
 
     import * as n from '../visitor/CST.js';
 
+    let qty_actual = ""
+    let isID = false
+
 function peg$subclass(child, parent) {
   function C() { this.constructor = child; }
   C.prototype = parent.prototype;
@@ -303,6 +306,7 @@ function peg$parse(input, options) {
     return new n.Regla(id, expr, alias);
   };
   var peg$f3 = function(expr, rest) {
+    isID = false // REVISAR CUIDADO
     return new n.Opciones([expr, ...rest]);
   };
   var peg$f4 = function(expr, rest, action) {
@@ -336,10 +340,14 @@ function peg$parse(input, options) {
     return new n.Label(expr, label);
   };
   var peg$f10 = function(text, expr, qty) {
+
+    if(isID) qty_actual = qty
+    isID = false
     return new n.Annotated(expr, qty, text ? true : false);
   };
   var peg$f11 = function(id) {
     usos.push(id)
+    isID = true
     return new n.Identificador(id);
   };
   var peg$f12 = function(val, isCase) {
@@ -356,7 +364,7 @@ function peg$parse(input, options) {
   var peg$f17 = function(inicio, opciones) {return {min:inicio, opciones: opciones, tipo: "unico2"}};
   var peg$f18 = function(inicio, fin, opciones) { return {min: inicio, max: fin, opciones:opciones, tipo:"rango2"} };
   var peg$f19 = function(returnType, code) {
-    return new n.Predicate(returnType, code, {})
+    return new n.Predicate(returnType, code, {}, qty_actual)
   };
   var peg$f20 = function(t) {
     return t.trim();
