@@ -14,7 +14,8 @@ const nodes = {
         exprs: 'Union[]' 
     },
     Union: { 
-        exprs: 'Expresion[]' 
+        exprs: 'Expresion[]',
+        action: '?Predicate'
     },
     String: { 
         val: 'string', 

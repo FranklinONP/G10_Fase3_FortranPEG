@@ -37,11 +37,11 @@ export default class FortranTranslator {
         this.currentExpr = 0;
     }
     
-     /**
+    /**
      * @param {CST.Grammar} node
      * @this {Visitor}
      */
-     visitGrammar(node) {
+    visitGrammar(node) {
         const rules = node.rules.map((rule) => rule.accept(this));
 
         return Template.main({
@@ -408,22 +408,6 @@ export default class FortranTranslator {
     }*/
 
     /**
-     * @param {CST.Assertion} node
-     * @this {Visitor}
-     */
-    visitAssertion(node) {
-        throw new Error('Method not implemented.');
-    }
-
-    /**
-     * @param {CST.NegAssertion} node
-     * @this {Visitor}
-     */
-    visitNegAssertion(node) {
-        throw new Error('Method not implemented.');
-    }
-
-    /**
      * @param {CST.Predicate} node
      * @this {Visitor}
      */
@@ -570,7 +554,7 @@ export default class FortranTranslator {
         if (ranges.length !== 0) {
             characterClass = [...characterClass, ...ranges];
         }
-        return characterClass.join(' .or. ');
+        return `(${characterClass.join(' .or. ')})`;
     }
 
 

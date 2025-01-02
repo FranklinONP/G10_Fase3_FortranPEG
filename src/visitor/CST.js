@@ -94,9 +94,11 @@ export class Union {
     /**
      *
      * @param {Expresion[]} exprs
+	 * @param {Predicate=} action
      */
-    constructor(exprs) {
+    constructor(exprs, action) {
         this.exprs = exprs;
+		this.action = action;
     }
 
     /**
