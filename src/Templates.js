@@ -257,7 +257,21 @@ export const strExpr = (data) => {
                 ${data.destination} = consumeInput()
             `;
         case '*':
-            return '! * quantifier not implemented string';
+            return `
+                lexemeStart = cursor
+                do while (.not. cursor > len(input))
+                    if (.not. ${data.expr}) exit
+                end do
+                ${data.destination} = consumeInput()
+            `;
+        case '?':
+            return `
+                lexemeStart = cursor
+                if (${data.expr} .or. .not. (${data.expr})) then
+                    continue
+                end if
+                ${data.destination} = consumeInput()
+            `;
         default:
             throw new Error(
                 `'${data.quantifier}' quantifier needs implementation`
