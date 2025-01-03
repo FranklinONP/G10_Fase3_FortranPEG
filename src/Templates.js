@@ -22,6 +22,7 @@ module parser
        module procedure strToStr
        module procedure arrayStringToStr
        module procedure arrayIntegerToStr
+       module procedure logicalToStr
    end interface
    
    ${data.beforeContains}
@@ -183,6 +184,17 @@ module parser
         ! Agregamos corchetes al resultado
         cast = trim(cast)
     end function arrayStringToStr
+
+    function logicalToStr(log) result(cast)
+        logical, intent(in) :: log
+        character(len=:), allocatable :: cast
+    
+        if (log) then
+            cast = "true"
+        else
+            cast = "false"
+        end if
+    end function logicalToStr
 
     function arrayIntegerToStr(arr) result(cast)
         integer, intent(in) :: arr(:)
@@ -567,9 +579,20 @@ export const strResultExpr = (data) => `
 * }} data
 * @returns
 */
-export const fnResultExpr = (data) => data.isPointer ? `res => ${data.fnId}(${data.exprs.join(', ')})` : `
-               res = ${data.fnId}(${data.exprs.join(', ')})
-`;
+export const fnResultExpr = (data) => {
+    if(data.isPointer) {
+        return `res => ${data.fnId}(${data.exprs.join(', ')})`
+
+    }else{ 
+        if(data.isLogical){
+            return `res = toStr(${data.fnId}(${data.exprs.join(', ')}))`
+        }else{
+            return `
+                res = ${data.fnId}(${data.exprs.join(', ')})`
+
+        }
+    }
+};
 
 /**
 *

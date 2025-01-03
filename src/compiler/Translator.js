@@ -38,6 +38,7 @@ export default class FortranTranslator {
         this.funciones_expand = [];
         this.id_actual = ""
         this.tipo_actual = ""
+        this.func = {}
     }
     
     /**
@@ -112,8 +113,11 @@ export default class FortranTranslator {
                         return `${
                             expr instanceof CST.Identificador
                                 ? getReturnType(
-                                    getActionId(expr.id, i),
-                                    this.actionReturnTypes
+                                    getActionId(expr.id, i, this.func),
+                                    this.actionReturnTypes,
+                                    false,
+                                    expr.id,
+                                    this.func
                                 )
                                 : 'character(len=:), allocatable'
                         } :: expr_${i}_${j}`;
@@ -183,6 +187,7 @@ export default class FortranTranslator {
         let resultExpr;
         const currFnId = getActionId(this.currentRule, this.currentChoice);
         if (currFnId in this.actionReturnTypes) {
+
             neededExprs = exprVars.filter(
                 (_, i) => matchExprs[i].labeledExpr.label
             );
@@ -190,6 +195,7 @@ export default class FortranTranslator {
                 fnId: getActionId(this.currentRule, this.currentChoice),
                 isPointer: this.actionReturnTypes[currFnId].includes('pointer'),
                 exprs: neededExprs.length > 0 ? neededExprs : [],
+                isLogical: this.actionReturnTypes[currFnId].includes('logical'),
             });
         } else {
             neededExprs = exprVars.filter((_, i) => matchExprs[i].pluck);
@@ -525,8 +531,11 @@ export default class FortranTranslator {
             paramDeclarations: Object.entries(node.params).map(
                 ([label, ruleId]) =>
                     `${getReturnType(
-                        getActionId(ruleId, this.currentChoice),
-                        this.actionReturnTypes
+                        getActionId(ruleId, this.currentChoice, this.func),
+                        this.actionReturnTypes,
+                        false,
+                        ruleId == "" ? undefined : ruleId,
+                        this.func
                     )} ${(node.qty && node.qty != "?") ? ", dimension(:)":""} :: ${label}`
             ),
             code: node.code+codee,
