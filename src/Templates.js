@@ -486,7 +486,32 @@ export const strExpr = (data) => {
                 }
 
             case 'unico2':
-                return ""
+
+                return `
+                    lexemeStart = cursor
+                    veces = 0
+                    if (.not. (${data.expr})) then
+                        cycle
+                    else
+                        veces=veces+1
+                    end if 
+                    do d =1, ${min-1}
+                        if (d < ${min}) then
+                            if (.not. acceptString('${data.delimitador}', .false. )) then
+                                exit
+                            end if
+                        end if
+                        if (.not. (${data.expr})) then
+                            exit
+                        end if 
+                        veces=veces+1
+                    end do
+                    if(veces /= ${min}) then
+                        
+                        veces = 0
+                        call pegError()
+                    end if 
+                    ${data.destination} = consumeInput()`;
             
 
             case 'rango2':

@@ -120,8 +120,8 @@ conteo
                         {return {min: inicio, tipo: "unico1"}}
   / "|" _ min:(numero / identificador)? _ ".." _ max:(numero / identificador)? _ "|" 
                         {return {min: min, max: max, tipo: "rango1"}}
-  / "|" _ inicio:(numero / identificador)? _ "," _ opciones: opciones _ "|" 
-                        {return {min:inicio, opciones: opciones, tipo: "unico2"}}
+  / "|" _ inicio:(numero / identificador)? _ "," _ opciones: $literales _ "|" 
+                        {return {min:inicio, opciones: opciones.replace(/['"]/g, ''), tipo: "unico2"}}
   / "|" _ inicio:(numero / identificador)? _ ".." _ fin:(numero /identificador)? _ "," _ opciones: opciones _ "|" 
                         { return {min: inicio, max: fin, opciones:opciones, tipo:"rango2"} }  
 

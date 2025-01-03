@@ -588,6 +588,7 @@ export default class FortranTranslator {
             return Template.strExpr2({
                 qty: node.qty,
                 expr: node.expr.accept(this),
+                delimitador: node.qty.opciones,
                 destination: getExprId(this.currentChoice, this.currentExpr),
             });
         } else {

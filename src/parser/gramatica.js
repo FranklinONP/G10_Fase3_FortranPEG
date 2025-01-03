@@ -368,7 +368,7 @@ function peg$parse(input, options) {
   };
   var peg$f16 = function(inicio) {return {min: inicio, tipo: "unico1"}};
   var peg$f17 = function(min, max) {return {min: min, max: max, tipo: "rango1"}};
-  var peg$f18 = function(inicio, opciones) {return {min:inicio, opciones: opciones, tipo: "unico2"}};
+  var peg$f18 = function(inicio, opciones) {return {min:inicio, opciones: opciones.replace(/['"]/g, ''), tipo: "unico2"}};
   var peg$f19 = function(inicio, fin, opciones) { return {min: inicio, max: fin, opciones:opciones, tipo:"rango2"} };
   var peg$f20 = function(assert, returnType, code) {
     return new n.Predicate(returnType, code, {}, qty_actual,assert,'normal')
@@ -1530,7 +1530,13 @@ function peg$parse(input, options) {
           }
           if (s5 !== peg$FAILED) {
             s6 = peg$parse_();
-            s7 = peg$parseopciones();
+            s7 = peg$currPos;
+            s8 = peg$parseliterales();
+            if (s8 !== peg$FAILED) {
+              s7 = input.substring(s7, peg$currPos);
+            } else {
+              s7 = s8;
+            }
             if (s7 !== peg$FAILED) {
               s8 = peg$parse_();
               if (input.charCodeAt(peg$currPos) === 124) {
