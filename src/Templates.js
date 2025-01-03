@@ -184,6 +184,10 @@ export const rule = (data) => `
        integer :: initial_size = 1, increment_size = 1
        integer :: i
        character(len=:), allocatable :: no_guardado
+       integer :: veces,d
+
+       veces = 0
+       d=0
 
        savePoint = cursor
        ${data.expr}
@@ -291,37 +295,228 @@ export const strExpr = (data) => {
     * @returns
     */
     export const strExpr2 = (data) => {
-        
-        switch (data.quantifier) {
-            case '+':
+
+        if (!data.qty.tipo) {
+            return `
+                    lexemeStart = cursor
+                    if(.not. ${data.expr}) cycle
+                    ${data.destination} = consumeInput()
+            `;
+        }
+
+        let tipo = data.qty.tipo;
+        let min = data.qty.min;
+        let max = data.qty.max;
+
+        switch (tipo) {
+            case 'unico1':
                 return `
                     lexemeStart = cursor
-                    if (.not. ${data.expr}) cycle
-                    do while (.not. cursor > len(input))
-                        if (.not. ${data.expr}) exit
-                    end do
+                    veces = 0
+                    if (.not. ${data.expr}) then
+                        cycle
+                    else
+                        veces=veces+1
+                    end if
+                    do d =1, ${min-1}
+                        if (.not. (${data.expr})) then
+                            exit
+                        end if 
+                        veces=veces+1
+                    end do 
+                    if(veces /= ${min}) then
+                        veces = 0
+                        call pegError()
+                    end if 
                     ${data.destination} = consumeInput()
-                `;
-            case '*':
-                return `
+                    `;
+            case 'rango1':
+
+                if((min == undefined && max == undefined) || (min == 0 && max == undefined)){
+                    return `
                     lexemeStart = cursor
                     do while (.not. cursor > len(input))
-                        if (.not. ${data.expr}) exit
+                        if (.not. (${data.expr})) then
+                            exit
+                        end if
                     end do
                     ${data.destination} = consumeInput()
-                `;
-            case '?':
-                return `
+                    `;
+                }
+
+                if(min == undefined && max != undefined){
+                    return `
+                    lexemeStart = cursor
+                    veces = 0
+                    do d =0, ${max-1}
+                        if (.not. (${data.expr})) then
+                            exit
+                        end if 
+                        veces=veces+1
+                    end do
+                    if(veces > ${max}) then
+                        
+                        veces = 0
+                        call pegError()
+                    end if 
+                    ${data.destination} = consumeInput()
+                    `;
+                }
+
+                if(min != undefined && max == undefined){
+                    return `
+                    lexemeStart = cursor
+                    veces = 0
+                    if (.not. (${data.expr})) then
+                        cycle
+                    else
+                        veces=veces+1
+                    end if
+                    do while(.not. cursor > len(input))
+                        if (.not. (${data.expr})) then
+                            exit
+                        end if 
+                        veces=veces+1
+                    end do
+                    if(veces < ${min}) then
+                        
+                        veces = 0
+                        call pegError()
+                    end if 
+                    ${data.destination} = consumeInput()
+                    `;
+                }
+
+                if(min == 1 && max == 1){
+
+                    return `
+                    lexemeStart = cursor
+                    if (.not. (${data.expr})) then
+                        cycle
+                    end if
+                    ${data.destination} = consumeInput()
+                    `;
+
+                }else if(max == 1){
+                    return `
                     lexemeStart = cursor
                     if (${data.expr} .or. .not. (${data.expr})) then
                         continue
                     end if
                     ${data.destination} = consumeInput()
-                `;
+                    `
+                }else{
+                    return `
+                    lexemeStart = cursor
+                    veces = 0
+                    if (.not. (${data.expr})) then
+                        cycle
+                    else
+                        veces=veces+1
+                    end if
+                    do d =0, ${max-2}
+                        if (.not. (${data.expr})) then
+                            exit
+                        end if 
+                        veces=veces+1
+                    end do 
+                    if(veces < ${min} .or. veces > ${max}) then
+                        
+                        veces = 0
+                        call pegError()
+                    end if 
+                    ${data.destination} = consumeInput()
+                    `
+                }
+
+            case 'unico2':
+            let exp=data.qty.opciones.exprs.accept(this);
+            let indice = this.contador_delimitadores++;
+            let funcion = 
+            `function acceptDelimiter_${indice}() result(accept)
+                logical :: accept
+                integer :: i,veces
+                accept = .false.
+
+                ${node.qty.opciones.accept(this)}
+
+                accept = .true.
+            end function acceptDelimiter_${indice}`
+
+            this.arreglo_delimitadores.push(funcion);
+
+            const delimitador =  `acceptDelimiter_${indice}()`;
+
+            return `
+                veces = 0
+                if (.not. (${condition})) then
+                    cycle
+                else
+                    veces=veces+1
+                end if 
+                do d =1, ${min-1}
+                    if (d < ${min}) then
+                        if (.not. ${delimitador}) then
+                            exit
+                        end if
+                    end if
+                    if (.not. (${condition})) then
+                        exit
+                    end if 
+                    veces=veces+1
+                end do
+                if(veces /= ${min}) then
+                    
+                    accept = .false.
+                    veces = 0
+                    return
+                end if `;
+            
+
+            case 'rango2':
+                
+                let indice2 = this.contador_delimitadores++;
+                let funcion2 = 
+                `function acceptDelimiter_${indice2}() result(accept)
+                    logical :: accept
+                    integer :: i,veces
+                    accept = .false.
+
+                    ${node.qty.opciones.accept(this)}
+
+                    accept = .true.
+                end function acceptDelimiter_${indice2}`
+
+                this.arreglo_delimitadores.push(funcion2);
+
+                const delimitador2 =  `acceptDelimiter_${indice2}()`;
+
+                return `
+                    veces = 0
+                    do d =1, ${max-1}
+                        if (.not. (${condition})) then
+                            exit
+                        end if 
+                        if (d < ${min}) then
+                            if (.not. ${delimitador2}) then
+                                exit
+                            end if
+                        end if
+                        veces=veces+1
+                    end do
+                    if(veces < ${min} .or. veces > ${max}) then
+                        accept = .false.
+                        veces = 0
+                        return
+                    end if`;
+
+
             default:
-                throw new Error(
-                    `'${data.quantifier}' quantifier needs implementation`
-                );
+                return `
+                    if (.not. (${condition})) then
+                        cycle
+                    end if
+                    `;
         }
     };
 

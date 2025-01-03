@@ -518,8 +518,8 @@ export default class FortranTranslator {
             });
         } else if (node.qty) {
             // TODO: Implement repetitions (e.g., |3|, |1..3|, etc...)
-            return Template.strExpr({
-                quantifier: node.qty,
+            return Template.strExpr2({
+                qty: node.qty,
                 expr: node.expr.accept(this),
                 destination: getExprId(this.currentChoice, this.currentExpr),
             });
