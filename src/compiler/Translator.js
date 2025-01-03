@@ -485,6 +485,34 @@ export default class FortranTranslator {
                 `;
                 break;
         }
+
+        if(node.tipo){
+            index = node.code.indexOf('=');
+        }
+
+        switch(node.tipo){
+            case 'unico1':
+                antes = node.code.substring(0, index);
+                codee = `
+                veces = 0
+                if (.not. ${antes.split(/\s+/).join('')}) then
+                    cycle
+                else
+                    veces=veces+1
+                end if
+                do d =1, ${node.min-1}
+                    if (.not. (${antes.split(/\s+/).join('')})) then
+                        exit
+                    end if 
+                    veces=veces+1
+                end do 
+                if(veces /= ${node.min}) then
+                    
+                    veces = 0
+                    call pegError()
+                end if `;
+                break;
+        }
         return Template.action({
             ruleId: this.currentRule,
             choice: this.currentChoice,
