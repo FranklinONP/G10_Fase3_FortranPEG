@@ -279,6 +279,55 @@ export const strExpr = (data) => {
     }
 };
 
+
+
+/**
+*
+* @param {{
+    *  expr: string;
+    *  destination: string
+    *  quantifier?: string;
+    * }} data
+    * @returns
+    */
+    export const strExpr2 = (data) => {
+        
+        switch (data.quantifier) {
+            case '+':
+                return `
+                    lexemeStart = cursor
+                    if (.not. ${data.expr}) cycle
+                    do while (.not. cursor > len(input))
+                        if (.not. ${data.expr}) exit
+                    end do
+                    ${data.destination} = consumeInput()
+                `;
+            case '*':
+                return `
+                    lexemeStart = cursor
+                    do while (.not. cursor > len(input))
+                        if (.not. ${data.expr}) exit
+                    end do
+                    ${data.destination} = consumeInput()
+                `;
+            case '?':
+                return `
+                    lexemeStart = cursor
+                    if (${data.expr} .or. .not. (${data.expr})) then
+                        continue
+                    end if
+                    ${data.destination} = consumeInput()
+                `;
+            default:
+                throw new Error(
+                    `'${data.quantifier}' quantifier needs implementation`
+                );
+        }
+    };
+
+
+
+
 /**
 *
 * @param {{

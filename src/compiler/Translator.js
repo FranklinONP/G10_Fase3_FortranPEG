@@ -518,7 +518,11 @@ export default class FortranTranslator {
             });
         } else if (node.qty) {
             // TODO: Implement repetitions (e.g., |3|, |1..3|, etc...)
-            throw new Error('Repetitions not implemented.');
+            return Template.strExpr({
+                quantifier: node.qty,
+                expr: node.expr.accept(this),
+                destination: getExprId(this.currentChoice, this.currentExpr),
+            });
         } else {
             if (node.expr instanceof CST.Identificador) {
                 return `${getExprId(
