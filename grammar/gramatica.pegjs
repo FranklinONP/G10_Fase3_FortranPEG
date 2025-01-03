@@ -66,10 +66,10 @@ union
 
 parsingExpression
   = pluck
-  / '!' assertion:(match/predicate) {
+  / '!' !"{" _ assertion:(match/predicate) !"}" {
     return new n.NegAssertion(assertion);
   }
-  / '&' assertion:(match/predicate) {
+  / '&' !"{" assertion:(match/predicate) !"}" {
     return new n.Assertion(assertion);
   }
   / "!." {
@@ -122,8 +122,8 @@ conteo
                         { return {min: inicio, max: fin, opciones:opciones, tipo:"rango2"} }  
 
 predicate
-  = "{" [ \t\n\r]* returnType:predicateReturnType code:$[^}]* "}" {
-    return new n.Predicate(returnType, code, {}, qty_actual)
+  = assert:("!"/"&")? _ "{" [ \t\n\r]* returnType:predicateReturnType code:$[^}]* "}" {
+    return new n.Predicate(returnType, code, {}, qty_actual,assert)
   }
 
 predicateReturnType

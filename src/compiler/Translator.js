@@ -463,6 +463,13 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitPredicate(node) {
+        switch(node.assert){
+            case '!':
+                
+                break;
+            case '&':
+                break;
+        }
         return Template.action({
             ruleId: this.currentRule,
             choice: this.currentChoice,

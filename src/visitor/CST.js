@@ -389,12 +389,14 @@ export class Predicate {
 	 * @param {string} code
 	 * @param {{ [label: string]: string }} params
 	 * @param {string=} qty
+	 * @param {string | undefined} assert
      */
-    constructor(returnType, code, params, qty) {
+    constructor(returnType, code, params, qty, assert) {
         this.returnType = returnType;
 		this.code = code;
 		this.params = params;
 		this.qty = qty;
+		this.assert = assert;
     }
 
     /**
