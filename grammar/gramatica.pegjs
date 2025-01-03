@@ -123,10 +123,19 @@ conteo
 
 predicate
   = assert:("!"/"&")? _  "{" [ \t\n\r]* returnType:predicateReturnType code:$[^}]* "}" {
-    return new n.Predicate(returnType, code, {}, qty_actual,assert,tipo:'')
+    return new n.Predicate(returnType, code, {}, qty_actual,assert,'normal')
   }
   /assert:("!"/"&")? _ "|" _ "{" [ \t\n\r]* returnType:predicateReturnType code:$[^}]* "}" _ "|" {
-    return new n.Predicate(returnType, code, {}, qty_actual,assert,tipo:'unico1')
+    return new n.Predicate(returnType, code, {}, qty_actual,assert,'unico1')
+  }
+  /assert:("!"/"&")? _ "|" _ "{" _ [ \t\n\r]* returnType:predicateReturnType code:$[^}]* _ "}" _ ".." _ "{" _ [ \t\n\r]* returnType2:predicateReturnType code2:$[^}]* _ "}" _ "|" {
+    return new n.Predicate(returnType, code, {}, qty_actual,assert,'rango1')
+  }
+  /assert:("!"/"&")? _ "|" _ "{" _ [ \t\n\r]* returnType:predicateReturnType code:$[^}]* _ "}" _ "," _  opciones:opciones _ "|" {
+    return new n.Predicate(returnType, code, opciones, qty_actual,assert,'unico2')
+  }
+  /assert:("!"/"&")? _ "|" _ "{" _ [ \t\n\r]* returnType:predicateReturnType code:$[^}]* _ "}" _ ".." _ "{" _ [ \t\n\r]* returnType2:predicateReturnType code2:$[^}]* _ "}" _ ","  _ opciones:opciones _ "|" {
+    return new n.Predicate(returnType, code, opciones, qty_actual,assert,'rango2')
   }
 
 predicateReturnType
