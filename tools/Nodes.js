@@ -64,6 +64,7 @@ const nodes = {
         params: '{ [label: string]: string }',
         qty: '?string',
         assert: 'string | undefined',
+        tipo: 'string',
     },
     Punto: {},
     Fin: {},
