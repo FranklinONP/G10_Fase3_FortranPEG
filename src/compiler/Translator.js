@@ -37,6 +37,7 @@ export default class FortranTranslator {
         this.currentExpr = 0;
         this.funciones_expand = [];
         this.id_actual = ""
+        this.tipo_actual = ""
     }
     
     /**
@@ -91,7 +92,7 @@ export default class FortranTranslator {
                                 true
                             )
                             : 'character(len=:), allocatable'
-
+                            this.tipo_actual = type
                             if (expr instanceof CST.Identificador) this.funciones_expand.push(`subroutine expand_array_${expr.id}_expr_${i}_${j}(array, current_size, increment_size)
         ${type} :: array(:)
         integer :: current_size, increment_size
@@ -507,6 +508,7 @@ export default class FortranTranslator {
                     expr: node.expr.accept(this),
                     id: this.id_actual,
                     destination: getExprId(this.currentChoice, this.currentExpr),
+                    tipo: this.tipo_actual
                 });
             }
             return Template.strExpr({

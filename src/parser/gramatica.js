@@ -340,8 +340,8 @@ function peg$parse(input, options) {
     return new n.Label(expr, label);
   };
   var peg$f10 = function(text, expr, qty) {
-
-    if(isID) qty_actual = qty
+    qty_actual = ""
+    if(isID && qty != undefined) qty_actual = qty
     isID = false
     return new n.Annotated(expr, qty, text ? true : false);
   };
