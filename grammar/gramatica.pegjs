@@ -54,12 +54,16 @@ union
         .filter((expr) => expr instanceof n.Pluck)
         .filter((expr) => expr.labeledExpr.label);
     if (labeledExprs.length > 0) {
+      if(action.tipo == "normal"){
         action.params = labeledExprs.reduce((args, labeled) => {
             const expr = labeled.labeledExpr.annotatedExpr.expr;
             args[labeled.labeledExpr.label] =
                 expr instanceof n.Identificador ? expr.id : '';
             return args;
         }, {});
+      }
+      
+        
     }
     return new n.Union(exprs, action);
   }
@@ -103,7 +107,7 @@ match
   / val:$literales isCase:"i"? {
     return new n.String(val.replace(/['"]/g, ''), isCase ? true : false);
   }
-  / "(" _ @opciones _ ")"
+  / "(" _ opciones:opciones _ ")" {return new n.Agrupacion(opciones)}
   / chars:corchetes isCase:"i"? {
     return new n.Clase(chars, isCase ? true : false);
   }
@@ -126,16 +130,16 @@ predicate
     return new n.Predicate(returnType, code, {}, qty_actual,assert,'normal')
   }
   /assert:("!"/"&")? _ "|" _ "{" [ \t\n\r]* returnType:predicateReturnType code:$[^}]* "}" _ "|" {
-    return new n.Predicate(returnType, code, {}, qty_actual,assert,'unico1')
+    //return new n.Predicate(returnType, code, {}, qty_actual,assert,'unico1')
   }
   /assert:("!"/"&")? _ "|" _ "{" _ [ \t\n\r]* returnType:predicateReturnType code:$[^}]* _ "}" _ ".." _ "{" _ [ \t\n\r]* returnType2:predicateReturnType code2:$[^}]* _ "}" _ "|" {
-    return new n.Predicate(returnType, code, {}, qty_actual,assert,'rango1')
+   // return new n.Predicate(returnType, code, {}, qty_actual,assert,'rango1')
   }
   /assert:("!"/"&")? _ "|" _ "{" _ [ \t\n\r]* returnType:predicateReturnType code:$[^}]* _ "}" _ "," _  opciones:opciones _ "|" {
-    return new n.Predicate(returnType, code, opciones, qty_actual,assert,'unico2')
+    //return new n.Predicate(returnType, code, opciones, qty_actual,assert,'unico2')
   }
   /assert:("!"/"&")? _ "|" _ "{" _ [ \t\n\r]* returnType:predicateReturnType code:$[^}]* _ "}" _ ".." _ "{" _ [ \t\n\r]* returnType2:predicateReturnType code2:$[^}]* _ "}" _ ","  _ opciones:opciones _ "|" {
-    return new n.Predicate(returnType, code, opciones, qty_actual,assert,'rango2')
+   // return new n.Predicate(returnType, code, opciones, qty_actual,assert,'rango2')
   }
 
 predicateReturnType

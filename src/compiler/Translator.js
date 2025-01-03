@@ -463,6 +463,10 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitPredicate(node) {
+
+        /*if(node.tipo = "unico2" || node.tipo == "rango2" || node.tipo == "unico1" || node.tipo == "rango1"){
+            return;
+        }*/
         let index
         let codee=""
         let antes
@@ -535,6 +539,10 @@ export default class FortranTranslator {
      */
     visitPluck(node) {
         return node.labeledExpr.accept(this);
+    }
+
+    visitAgrupacion(node) {
+        
     }
 
     /**

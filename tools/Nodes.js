@@ -66,6 +66,9 @@ const nodes = {
         assert: 'string | undefined',
         tipo: 'string',
     },
+    Agrupacion: {
+        opciones: 'Node',
+    },
     Punto: {},
     Fin: {},
 };

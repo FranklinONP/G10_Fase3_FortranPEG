@@ -415,6 +415,29 @@ export class Predicate {
 /**
  * @implements {Node}
  */
+export class Agrupacion {
+    /**
+     *
+     * @param {Node} opciones
+     */
+    constructor(opciones) {
+        this.opciones = opciones;
+    }
+
+    /**
+     * @template T
+     * @param {Visitor<T>} visitor
+     * @returns {T}
+     */
+    accept(visitor) {
+        return visitor.visitAgrupacion(this);
+    }
+}
+    
+
+/**
+ * @implements {Node}
+ */
 export class Punto {
     /**
      *

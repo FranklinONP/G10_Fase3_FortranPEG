@@ -155,6 +155,15 @@ export default class Visitor {
          * @param {Node} node
          * @returns {T}
          */
+        visitAgrupacion(node){
+            throw new Error('Implement in subclass');
+        }
+	
+        /**
+         * @abstract
+         * @param {Node} node
+         * @returns {T}
+         */
         visitPunto(node){
             throw new Error('Implement in subclass');
         }
