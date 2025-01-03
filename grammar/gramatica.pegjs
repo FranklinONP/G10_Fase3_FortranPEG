@@ -88,8 +88,8 @@ label
 
 annotated
   = text:"$"? _ expr:match _ qty:([?+*]/conteo)? {
-
-    if(isID) qty_actual = qty
+    qty_actual = ""
+    if(isID && qty != undefined) qty_actual = qty
     isID = false
     return new n.Annotated(expr, qty, text ? true : false);
   }

@@ -302,7 +302,7 @@ export const strExpr = (data) => {
                 return `
                     current_size = initial_size
                     element_count = 0
-                    allocate(${data.destination}(current_size))
+                    allocate(${data.destination}(current_size)${data.tipo.includes('character') ? `, mold=${data.destination}` : ''})
 
                     do while ( .not. cursor > len(input))
                         if(element_count == current_size) then
@@ -317,7 +317,7 @@ export const strExpr = (data) => {
                 return `
                     current_size = initial_size
                     element_count = 0
-                    allocate(${data.destination}(current_size))
+                    allocate(${data.destination}(current_size)${data.tipo.includes('character') ? `, mold=${data.destination}` : ''})
 
                     do while ( .not. cursor > len(input))
                         if(element_count == current_size) then
