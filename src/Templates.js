@@ -300,14 +300,18 @@ export const strExpr = (data) => {
             case '+':
                 let expr = data.expr.split('(')[0]
                 return `
-                    cursor_actual = cursor
-                    lexemeStart = cursor
-                    if (.not. ${expr}_logical()) cycle
-                    do while (.not. cursor > len(input))
-                        if (.not. ${expr}_logical()) exit
+                    current_size = initial_size
+                    element_count = 0
+                    allocate(${data.destination}(current_size))
+
+                    do while ( .not. cursor > len(input))
+                        if(element_count == current_size) then
+                            call expand_array_${data.id}_${data.destination}(${data.destination}, current_size, increment_size)
+                        end if
+
+                        element_count = element_count + 1
+                        ${data.destination}(element_count) = ${data.expr}
                     end do
-                    ${data.destination} = consumeInput()
-                    cursor = cursor_actual
                 `;
             case '*':
                 return `

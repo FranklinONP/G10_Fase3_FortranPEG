@@ -97,7 +97,7 @@ export default class FortranTranslator {
         integer :: current_size, increment_size
         ${type} :: temp_array(:)
 
-        allocate(temp_array(current_size + increment_size))
+        allocate(temp_array(current_size + increment_size)${(type.includes("character") ? ", mold=array" : "")})
         temp_array(1:current_size) = array
         deallocate(array)
         array = temp_array
