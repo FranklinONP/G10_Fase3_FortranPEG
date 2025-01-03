@@ -53,7 +53,11 @@ export function getReturnType(functionId, actionReturnTypes, isArray = false) {
         //     return actionReturnTypes[functionId]+ actionReturnTypes[functionId].includes("allocatable") ? "" : ", allocatable";
         // }
 
-        return (actionReturnTypes[functionId]+`${(actionReturnTypes[functionId].includes("allocatable") ? "" : ", allocatable")}`) ?? 'character(len=:), allocatable';
+        if(actionReturnTypes[functionId] != undefined) {
+            return actionReturnTypes[functionId]+`${(actionReturnTypes[functionId].includes("allocatable") ? "" : ", allocatable")}`;
+        }
+
+        return 'character(len=:), allocatable';
     }
 
     return actionReturnTypes[functionId] ?? 'character(len=:), allocatable';

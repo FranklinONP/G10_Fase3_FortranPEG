@@ -648,6 +648,16 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitLiteralRango(node) {
-        return node.contenido;
+        const literalMap = {
+            "\\t": "char(9)",  // Tabulación
+            "\\n": "char(10)", // Nueva línea
+            " ": "char(32)",   // Espacio
+            "\\r": "char(13)",  // Retorno de carro
+        };
+
+        // Verifica si el literal es especial y tradúcelo, de lo contrario usa comillas
+        const literalFortran = literalMap[node.contenido] || `"${node.contenido}"`;
+
+        return literalFortran;
     }
 }
