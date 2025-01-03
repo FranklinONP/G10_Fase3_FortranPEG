@@ -606,6 +606,22 @@ export default class FortranTranslator {
      */
     visitClase(node) {
         let characterClass = [];
+        let secuencias = []
+
+        const secuencias_escape = {
+            "\\t": "char(9)",  // Tabulación
+            "\\n": "char(10)", // Nueva línea
+            "\\r": "char(13)",  // Retorno de carro
+        };
+
+        for (let i = 0; i < node.chars.length; i++) {
+            if(secuencias_escape[node.chars[i].contenido]) {
+                secuencias.push(`acceptString(${secuencias_escape[node.chars[i].contenido]}, .false.)`);
+                node.chars.splice(i, 1); // Elimina la secuencia de escape
+                i--; // Ajusta el índice después de la eliminación     
+            }
+                
+        }
 
         if (node.isCase) {
             node.chars.forEach((char) => {
@@ -622,6 +638,11 @@ export default class FortranTranslator {
         if (set.length !== 0) {
             characterClass = [`acceptSet([${set.join(',')}], ${node.isCase ? '.true.' : '.false.'})`];
         }
+
+        if (secuencias.length !== 0) {
+            characterClass = [...characterClass, ...secuencias];
+        }
+
         if (ranges.length !== 0) {
             characterClass = [...characterClass, ...ranges];
         }
@@ -665,16 +686,6 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitLiteralRango(node) {
-        const literalMap = {
-            "\\t": "char(9)",  // Tabulación
-            "\\n": "char(10)", // Nueva línea
-            " ": "char(32)",   // Espacio
-            "\\r": "char(13)",  // Retorno de carro
-        };
-
-        // Verifica si el literal es especial y tradúcelo, de lo contrario usa comillas
-        const literalFortran = literalMap[node.contenido] || `"${node.contenido}"`;
-
-        return literalFortran;
+        return node.contenido;
     }
 }
