@@ -239,6 +239,8 @@ export const rule = (data) => `
        integer :: i
        character(len=:), allocatable :: no_guardado
        integer :: veces,d
+        logical :: undefined = .true.
+
 
        veces = 0
        d=0
