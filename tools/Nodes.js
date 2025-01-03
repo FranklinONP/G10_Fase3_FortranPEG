@@ -53,10 +53,10 @@ const nodes = {
 
     },
     Assertion: { 
-        assertion: '(Annotated|Predicate)' 
+        assertion: 'Node' 
     },
     NegAssertion: {
-        assertion: '(Annotated|Predicate)' 
+        assertion: 'Node' 
     },
     Predicate: {
         returnType: 'string',
