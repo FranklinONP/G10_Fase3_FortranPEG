@@ -463,11 +463,26 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitPredicate(node) {
+        let index
+        let codee=""
+        let antes
+        if(node.assert){
+             index = node.code.indexOf('=');
+        }
         switch(node.assert){
             case '!':
-                
+                antes = node.code.substring(0, index);
+                codee = `if ( ${antes.split(/\s+/).join('')}) then
+                call pegError()
+                end if
+                `;
                 break;
             case '&':
+                antes = node.code.substring(0, index);
+                codee = `if (.not. ${antes.split(/\s+/).join('')}) then
+                call pegError()
+                end if
+                `;
                 break;
         }
         return Template.action({
@@ -482,7 +497,7 @@ export default class FortranTranslator {
                         this.actionReturnTypes
                     )} ${(node.qty && node.qty != "?") ? ", dimension(:)":""} :: ${label}`
             ),
-            code: node.code,
+            code: node.code+codee,
         });
     }
 
