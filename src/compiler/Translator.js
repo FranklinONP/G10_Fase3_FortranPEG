@@ -536,10 +536,7 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitAssertion(node) {
-        return `lexemeStart = cursor
-        if (.not. ${node.assertion.accept(this)}) cycle
-            no_guardado = consumeInput()
-        `;
+       return node.assertion.accept(this);
     }
     
     /**
@@ -547,10 +544,7 @@ export default class FortranTranslator {
      * @this {Visitor}
      */
     visitNegAssertion(node) {
-        return `lexemeStart = cursor
-        if (${node.assertion.accept(this)}) cycle
-            no_guardado = consumeInput()
-        `;
+        return node
     }
 
     /**
