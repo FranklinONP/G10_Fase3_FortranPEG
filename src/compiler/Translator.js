@@ -546,6 +546,18 @@ export default class FortranTranslator {
                 destination: getExprId(this.currentChoice, this.currentExpr),
             });
         } else {
+            if(node.text){
+                if (node.expr instanceof CST.Identificador) {
+                    return `${getExprId(
+                        this.currentChoice,
+                        this.currentExpr
+                    )} = ${node.expr.accept(this)}`;
+                }
+                return Template.strExpr({
+                    expr: node.expr.accept(this),
+                    destination: getExprId(this.currentChoice, this.currentExpr),
+                });
+            }
             if (node.expr instanceof CST.Identificador) {
                 return `${getExprId(
                     this.currentChoice,
