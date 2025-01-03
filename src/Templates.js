@@ -20,6 +20,8 @@ module parser
    interface toStr
        module procedure intToStr
        module procedure strToStr
+       module procedure arrayStringToStr
+       module procedure arrayIntegerToStr
    end interface
    
    ${data.beforeContains}
@@ -161,6 +163,46 @@ module parser
 
        cast = str
    end function strToStr
+
+   function arrayStringToStr(arr) result(cast)
+        character(len=*), intent(in) :: arr(:)
+        character(len=:), allocatable :: cast
+        integer :: i
+
+        ! Inicializamos la cadena como vacía
+        cast = ""
+
+        do i = 1, size(arr)
+            if (i == size(arr)) then
+                cast = trim(cast) // trim(arr(i))  ! Último elemento sin coma
+            else
+                cast = trim(cast) // trim(arr(i)) // ", "  ! Elementos separados por coma
+            end if
+        end do
+
+        ! Agregamos corchetes al resultado
+        cast = trim(cast)
+    end function arrayStringToStr
+
+    function arrayIntegerToStr(arr) result(cast)
+        integer, intent(in) :: arr(:)
+        character(len=:), allocatable :: cast
+        character(len=31) :: tmp
+        integer :: i
+
+        cast = ""
+
+        do i = 1, size(arr)
+            write(tmp, '(I0)') arr(i)
+            if (i == size(arr)) then
+                cast = trim(cast) // trim(adjustl(tmp))  ! Último elemento sin coma
+            else
+                cast = trim(cast) // trim(adjustl(tmp)) // ", "  ! Elementos separados por coma
+            end if
+        end do
+
+        cast = trim(cast)
+    end function arrayIntegerToStr
    ! Subroutines for quantifiers 
    ${data.funciones_cuantificadores.join('\n')}
 end module parser
@@ -430,85 +472,12 @@ export const strExpr = (data) => {
                 }
 
             case 'unico2':
-            let exp=data.qty.opciones.exprs.accept(this);
-            let indice = this.contador_delimitadores++;
-            let funcion = 
-            `function acceptDelimiter_${indice}() result(accept)
-                logical :: accept
-                integer :: i,veces
-                accept = .false.
-
-                ${node.qty.opciones.accept(this)}
-
-                accept = .true.
-            end function acceptDelimiter_${indice}`
-
-            this.arreglo_delimitadores.push(funcion);
-
-            const delimitador =  `acceptDelimiter_${indice}()`;
-
-            return `
-                veces = 0
-                if (.not. (${condition})) then
-                    cycle
-                else
-                    veces=veces+1
-                end if 
-                do d =1, ${min-1}
-                    if (d < ${min}) then
-                        if (.not. ${delimitador}) then
-                            exit
-                        end if
-                    end if
-                    if (.not. (${condition})) then
-                        exit
-                    end if 
-                    veces=veces+1
-                end do
-                if(veces /= ${min}) then
-                    
-                    accept = .false.
-                    veces = 0
-                    return
-                end if `;
+                return ""
             
 
             case 'rango2':
                 
-                let indice2 = this.contador_delimitadores++;
-                let funcion2 = 
-                `function acceptDelimiter_${indice2}() result(accept)
-                    logical :: accept
-                    integer :: i,veces
-                    accept = .false.
-
-                    ${node.qty.opciones.accept(this)}
-
-                    accept = .true.
-                end function acceptDelimiter_${indice2}`
-
-                this.arreglo_delimitadores.push(funcion2);
-
-                const delimitador2 =  `acceptDelimiter_${indice2}()`;
-
-                return `
-                    veces = 0
-                    do d =1, ${max-1}
-                        if (.not. (${condition})) then
-                            exit
-                        end if 
-                        if (d < ${min}) then
-                            if (.not. ${delimitador2}) then
-                                exit
-                            end if
-                        end if
-                        veces=veces+1
-                    end do
-                    if(veces < ${min} .or. veces > ${max}) then
-                        accept = .false.
-                        veces = 0
-                        return
-                    end if`;
+                return ""
 
 
             default:

@@ -104,7 +104,7 @@ export default class FortranTranslator {
         array = temp_array
         current_size = current_size + increment_size
     end subroutine expand_array_${expr.id}_expr_${i}_${j}`)
-                                this.id_actual = expr.id
+                                if(expr.id != undefined) this.id_actual = expr.id
 
                             return `${type} :: expr_${i}_${j}${expr instanceof CST.Identificador ? `(:)` : ''}`;
                         }
